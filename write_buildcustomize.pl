@@ -28,6 +28,7 @@ my @toolchain = qw(cpan/AutoLoader/lib
 		   cpan/File-Path/lib
 		   ext/re
 		   dist/Term-ReadLine/lib
+		   dist/constant/lib
 		   );
 
 # Used only in ExtUtils::Liblist::Kid::_win32_ext()
