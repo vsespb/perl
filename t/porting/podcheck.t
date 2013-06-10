@@ -3,6 +3,10 @@
 BEGIN {
     chdir 't';
     unshift @INC, "../lib";
+    if (!@ARGV && !$ENV{PERL_EXTRA_TESTS}) {
+        print "1..0 # Skip Set PERL_EXTRA_TESTS to run this\n";
+        exit 0;
+    }
 }
 
 use strict;
