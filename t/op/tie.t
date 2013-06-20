@@ -1334,7 +1334,7 @@ Can't call method "FETCHSIZE" on an undefined value at - line 7.
 Can't call method "FETCHSIZE" on an undefined value at - line 8.
 ########
 
-# TODO [perl #78194] Passing op return values to tie constructors
+# [perl #78194] Passing op return values to tie constructors
 sub TIEARRAY{
     print \$_[1] == \$_[1] ? "ok\n" : "not ok\n";
 };
