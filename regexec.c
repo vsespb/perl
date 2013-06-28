@@ -2135,6 +2135,9 @@ Perl_regexec_flags(pTHX_ REGEXP * const rx, char *stringarg, char *strend,
     /* see how far we have to get to not match where we matched before */
     reginfo->till = startpos+minend;
 
+    if (prog->extflags & RXf_EVAL_SEEN && SvPADTMP(sv) && !IS_PADGV(sv))
+        reginfo->sv = sv_mortalcopy(sv), SvTEMP_off(reginfo->sv);
+
     /* reserve next 2 or 3 slots in PL_regmatch_state:
      * slot N+0: may currently be in use: skip it
      * slot N+1: use for regmatch_info_aux struct
