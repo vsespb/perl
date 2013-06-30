@@ -7178,6 +7178,7 @@ Perl_newMYSUB(pTHX_ I32 floor, OP *o, OP *proto, OP *attrs, OP *block)
     }
     if (const_sv) {
 	SvREFCNT_inc_simple_void_NN(const_sv);
+	SvFLAGS(const_sv) = (SvFLAGS(const_sv) & ~SVs_PADMY) | SVs_PADTMP;
 	if (cv) {
 	    assert(!CvROOT(cv) && !CvCONST(cv));
 	    cv_forget_slab(cv);
@@ -7548,6 +7549,7 @@ Perl_newATTRSUB_flags(pTHX_ I32 floor, OP *o, OP *proto, OP *attrs,
     }
     if (const_sv) {
 	SvREFCNT_inc_simple_void_NN(const_sv);
+	SvFLAGS(const_sv) = (SvFLAGS(const_sv) & ~SVs_PADMY) | SVs_PADTMP;
 	if (cv) {
 	    assert(!CvROOT(cv) && !CvCONST(cv));
 	    cv_forget_slab(cv);
