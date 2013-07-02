@@ -1055,8 +1055,8 @@ PP(pp_aassign)
 	    i = 0;
 	    while (relem <= lastrelem) {	/* gobble up all the rest */
 		SV **didstore;
-		assert(*relem);
-		SvGETMAGIC(*relem); /* before newSV, in case it dies */
+		if (*relem)
+		    SvGETMAGIC(*relem); /* before newSV, in case it dies */
 		sv = newSV(0);
 		sv_setsv_nomg(sv, *relem);
 		*(relem++) = sv;
@@ -2956,7 +2956,7 @@ PP(pp_aelem)
 	      MEM_WRAP_CHECK_1(elem,SV*,oom_array_extend);
 	 }
 #endif
-	if (!svp || *svp == &PL_sv_undef) {
+	if (!svp || !*svp) {
 	    SV* lv;
 	    if (!defer)
 		DIE(aTHX_ PL_no_aelem, elem);
