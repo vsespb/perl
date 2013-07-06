@@ -680,7 +680,11 @@ struct OP_methods {
 #ifdef USE_ITHREADS
     STR_WITH_LEN("pmoffset"),IVp,     offsetof(struct pmop, op_pmoffset),/*20*/
     STR_WITH_LEN("filegv"),  0,       -1,                                /*21*/
+#  if PERL_VERSION < 19
     STR_WITH_LEN("file"),    char_pp, offsetof(struct cop, cop_file),    /*22*/
+#  else
+    STR_WITH_LEN("file"),    0,       -1,                                /*22*/
+#  endif
     STR_WITH_LEN("stash"),   0,       -1,                                /*23*/
 #  if PERL_VERSION < 17
     STR_WITH_LEN("stashpv"), char_pp, offsetof(struct cop, cop_stashpv), /*24*/
@@ -718,6 +722,11 @@ struct OP_methods {
     STR_WITH_LEN("warnings"),0,       -1,                                /*44*/
     STR_WITH_LEN("io"),      0,       -1,                                /*45*/
     STR_WITH_LEN("hints_hash"),0,     -1,                                /*46*/
+#  if PERL_VERSION < 19 || !defined(USE_ITHREADS)
+    STR_WITH_LEN("filegvoff"),0,      -1,                                /*47*/
+#  else
+    STR_WITH_LEN("filegvoff"),PADOFFSETp,offsetof(struct cop, cop_filegvoff),/*47*/
+#  endif
 };
 
 #include "const-c.inc"
@@ -1022,7 +1031,7 @@ next(o)
 		ret = make_sv_object(aTHX_ (SV *)CopFILEGV((COP*)o));
 		break;
 #endif
-#ifndef USE_ITHREADS
+#if !defined(USE_ITHREADS) || PERL_VERSION >= 19
 	    case 22: /* file */
 		ret = sv_2mortal(newSVpv(CopFILE((COP*)o), 0));
 		break;
