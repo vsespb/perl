@@ -518,37 +518,6 @@ S_ao(pTHX_ int toketype)
 }
 
 /*
- * S_postderef
- *
- * This subroutine handles postfix deref syntax after the arrow has already
- * been emitted.  @* $* etc. are emitted as two separate token right here.
- * @[ @{ %[ %{ are emitted also as two tokens, but this function emits only
- * the first, leaving yylex to find the next.
- * %[ and %{ are currently unrecognized by the parser, causing syntax
- * errors.  If/when they are added to the parser, no change will be neces-
- * sary here.
- */
-
-static int
-S_postderef(pTHX_ char const funny, char const next)
-{
-    dVAR;
-    assert(strchr("$@%&*", funny));
-    assert(strchr("*[{", next));
-    if (next == '*') {
-	PL_expect = XOPERATOR;
-	start_force(PL_curforce);
-	force_next(next);
-	PL_bufptr+=2;
-    }
-    else {
-	PL_expect = XOPERATOR;
-	PL_bufptr++;
-    }
-    return funny;
-}
-
-/*
  * S_no_op
  * When Perl expects an operator and finds something else, no_op
  * prints the warning.  It always prints "<something> found where
@@ -2091,6 +2060,37 @@ S_force_next(pTHX_ I32 type)
 	PL_lex_state = LEX_KNOWNEXT;
     }
 #endif
+}
+
+/*
+ * S_postderef
+ *
+ * This subroutine handles postfix deref syntax after the arrow has already
+ * been emitted.  @* $* etc. are emitted as two separate token right here.
+ * @[ @{ %[ %{ *{ are emitted also as two tokens, but this function emits
+ * only the first, leaving yylex to find the next.
+ * %[ and %{ are currently unrecognized by the parser, causing syntax
+ * errors.  If/when they are added to the parser, no change will be neces-
+ * sary here.
+ */
+
+static int
+S_postderef(pTHX_ char const funny, char const next)
+{
+    dVAR;
+    assert(strchr("$@%&*", funny));
+    assert(strchr("*[{", next));
+    if (next == '*') {
+	PL_expect = XOPERATOR;
+	start_force(PL_curforce);
+	force_next(next);
+	PL_bufptr+=2;
+    }
+    else {
+	PL_expect = XOPERATOR;
+	PL_bufptr++;
+    }
+    return funny;
 }
 
 void
@@ -5657,8 +5657,9 @@ Perl_yylex(pTHX)
 	    else if (*s == '>') {
 		s++;
 		s = SKIPSPACE1(s);
-		if ((strchr("$&*",*s) && s[1] == '*')
-		  ||((*s == '@' || *s == '%') && strchr("*[{", s[1])))
+		if (((*s == '$' || *s == '&') && s[1] == '*')
+		  ||((*s == '@' || *s == '%') && strchr("*[{", s[1]))
+		  ||(*s == '*' && (s[1] == '*' || s[1] == '{')))
 		{
 		    PL_expect = XPOSTDEREF;
 		    TOKEN(ARROW);

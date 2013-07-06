@@ -94,7 +94,7 @@
 
 %type <opval> stmtseq fullstmt labfullstmt barestmt block mblock else
 %type <opval> expr term subscripted scalar ary hsh arylen star amper sideff
-%type <opval> sliceme
+%type <opval> sliceme gelem
 %type <opval> listexpr nexpr texpr iexpr mexpr mnexpr miexpr
 %type <opval> optlistexpr optexpr indirob listop method
 %type <opval> formname subname proto subbody cont my_scalar formblock
@@ -846,7 +846,7 @@ method	:	METHOD
 	;
 
 /* Some kind of subscripted expression */
-subscripted:    star '{' expr ';' '}'        /* *main::{something} */
+subscripted:    gelem '{' expr ';' '}'        /* *main::{something} */
                         /* In this and all the hash accessors, ';' is
                          * provided by the tokeniser */
 			{ $$ = newBINOP(OP_GELEM, 0, $1, scalar($3));
@@ -1255,6 +1255,11 @@ term	:	termbinop
 			{ $$ = newHVREF($1);
 			  TOKEN_GETMAD($3,$$,'@');
 			}
+	|	term ARROW '&' '*'
+			{ $$ = newUNOP(OP_ENTERSUB, 0,
+				       scalar(newCVREF(IVAL($3),$1)));
+			  TOKEN_GETMAD($3,$$,'&');
+			}
 	|	LOOPEX  /* loop exiting command (goto, last, dump, etc) */
 			{ $$ = newOP(IVAL($1), OPf_SPECIAL);
 			    PL_hints |= HINT_BLOCK_SCOPE;
@@ -1412,10 +1417,6 @@ amper	:	'&' indirob
 			{ $$ = newCVREF(IVAL($1),$2);
 			  TOKEN_GETMAD($1,$$,'&');
 			}
-	|	term ARROW '&' '*'
-			{ $$ = newCVREF(IVAL($3),$1);
-			  TOKEN_GETMAD($3,$$,'&');
-			}
 	;
 
 scalar	:	'$' indirob
@@ -1452,6 +1453,13 @@ sliceme	:	ary
 	|	term ARROW '@'
 			{ $$ = newAVREF($1);
 			  TOKEN_GETMAD($3,$$,'@');
+			}
+	;
+
+gelem	:	star
+	|	term ARROW '*'
+			{ $$ = newGVREF(0,$1);
+			  TOKEN_GETMAD($3,$$,'*');
 			}
 	;
 
